@@ -2,6 +2,9 @@
 //
 
 #include <iostream>
+#include <vector>
+#include <string>
+#include <cstdlib>
 using namespace std;
 
 // Costos de Recursos
@@ -24,6 +27,7 @@ int main()
 {
     std::cout << "Hello World!\n";
 }
+
 
 
 
