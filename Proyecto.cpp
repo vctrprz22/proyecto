@@ -14,19 +14,53 @@ const int Costo_Medicina = 250; // Costo por aplicar medicina
 const int Costo_Vacuna = 500; // Costo por aplicar vacuna
 
 //Estados
-enum EstadoVida { Vivo, Muerto };
-enum EstadoComida { BienAlimentado, Desnutrido };
-enum EstadoSalud { Sano, Enfermo };
+const int VIVO            = 0;
+const int MUERTO          = 1;
 
-//Funciones al azar
+const int BIEN_ALIMENTADO = 0;
+const int DESNUTRIDO      = 1;
+
+const int SANO            = 0;
+const int ENFERMO         = 1;
+
+// Genera un número entero entre a y b
 int numeroAleatorio(int a, int b) {
-    return a + rand() % (b - a + 1);
+    return rand() % (b - a + 1) + a;
 }
+
+// Genera un número decimal entre 0 y 1
+double probabilidad() {
+    return (double) rand() / (double) RAND_MAX;
+}
+
+// Clase Animal (base)
+
+class Animal {
+protected:
+    int id;                  // identificador único
+    string tipo;             // tipo de animal
+    int comidaPorDia;        // comida que necesita por día
+    int precio;              // precio del animal
+
+    int vida;                // estado de vida (VIVO o MUERTO)
+    int estadoComida;        // estado de nutrición (BIEN_ALIMENTADO o DESNUTRIDO)
+    int salud;               // estado de salud (SANO o ENFERMO)
+
+    bool comioHoy;           // si comió hoy
+    bool esCria;             // si es cría
+    int diasEnfermo;         // días que lleva enfermo
+    bool enfermedadGrave;    // si la enfermedad es grave (solo crías)
+    int vacunas;             // cantidad de vacunas aplicadas
+
+    static int contadorId;   // contador para generar IDs automáticos
+
+
 
 int main()
 {
     std::cout << "Hello World!\n";
 }
+
 
 
 
