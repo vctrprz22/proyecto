@@ -43,16 +43,34 @@ protected:
     int precio;              // precio del animal
 
     int vida;                // estado de vida (VIVO o MUERTO)
-    int estadoComida;        // estado de nutrición (BIEN_ALIMENTADO o DESNUTRIDO)
+    int estadoComida;        // estado de nutrición (BIEN ALIMENTADO o DESNUTRIDO)
     int salud;               // estado de salud (SANO o ENFERMO)
 
     bool comioHoy;           // si comió hoy
     bool esCria;             // si es cría
     int diasEnfermo;         // días que lleva enfermo
-    bool enfermedadGrave;    // si la enfermedad es grave (solo crías)
+    bool enfermedadGrave;    // si la enfermedad es grave (solo para las crías)
     int vacunas;             // cantidad de vacunas aplicadas
 
     static int contadorId;   // contador para generar IDs automáticos
+
+public:
+    // Constructor
+    Animal(string _tipo, int _comida, int _precio, bool _cria = false) {
+        tipo = _tipo;
+        comidaPorDia = _comida;
+        precio = _precio;
+        esCria = _cria;
+        id = ++contadorId;
+
+        vida = VIVO;
+        estadoComida = BIEN_ALIMENTADO;
+        salud = SANO;
+        comioHoy = false;
+        diasEnfermo = 0;
+        enfermedadGrave = false;
+        vacunas = 0;
+    }
 
 
 
@@ -60,6 +78,7 @@ int main()
 {
     std::cout << "Hello World!\n";
 }
+
 
 
 
