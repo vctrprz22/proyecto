@@ -72,12 +72,77 @@ public:
         vacunas = 0;
     }
 
+// Revisar salud (curación o muerte)
+    void revisarSalud() {
+        if (vida == MUERTO || salud == SANO) return;
+
+        if (esCria) {
+            if (enfermedadGrave) {
+                if (diasEnfermo <= 0) {
+                    vida = MUERTO;
+                    cout << "La cría " << id << " (" << tipo << ") murió por enfermedad grave.\n";
+                } else {
+                    diasEnfermo--;
+                }
+            } else {
+                diasEnfermo--;
+                if (diasEnfermo <= 0) {
+                    if (probabilidad() < 0.2) {
+                        salud = SANO;
+                        cout << "La cría " << id << " (" << tipo << ") se recuperó naturalmente.\n";
+                    } else {
+                        diasEnfermo = 1;
+                    }
+                }
+            }
+        } else {
+            diasEnfermo--;
+            if (diasEnfermo <= 0) {
+                if (probabilidad() < 0.5) {
+                    salud = SANO;
+                    cout << "El animal " << id << " (" << tipo << ") se recuperó naturalmente.\n";
+                } else {
+                    diasEnfermo = 1;
+                }
+            }
+        }
+    }
+static double probabilidadBase(string t, bool cria) {
+    if (t == "Ave") {
+        if (cria) return 0.04;
+        else return 0.02;
+    }
+
+    if (t == "Mamífero") {
+        if (cria) return 0.02;
+        else return 0.01;
+    }
+
+    if (t == "Reptil") {
+        if (cria) return 0.03;
+        else return 0.015;
+    }
+
+    if (t == "Pez") {
+        if (cria) return 0.05;
+        else return 0.025;
+    }
+
+    if (t == "Anfibio") {
+        if (cria) return 0.04;
+        else return 0.02;
+    }
+
+    return 0.0; // si no coincide con ningún tipo
+}
+
 
 
 int main()
 {
     std::cout << "Hello World!\n";
 }
+
 
 
 
