@@ -71,6 +71,7 @@ public:
         enfermedadGrave = false;
         vacunas = 0;
     }
+  virtual ~Animal() {}
 
 // Revisar salud (curación o muerte)
     void revisarSalud() {
@@ -135,6 +136,118 @@ static double probabilidadBase(string t, bool cria) {
 
     return 0.0; // si no coincide con ningún tipo
 }
+ virtual void mostrarDescripcion() = 0;
+
+    // Mostrar información del animal
+    void mostrar() {
+        cout << "ID: " << id 
+             << " | Tipo: " << tipo
+             << " | Vida: " << (vida == VIVO ? "Vivo" : "Muerto")
+             << " | Nutrición: " << (estadoComida == BIEN_ALIMENTADO ? "Bien" : "Desnutrido")
+             << " | Salud: " << (salud == SANO ? "Sano" : "Enfermo")
+             << " | Comida diaria: " << comidaPorDia
+             << " | Precio: " << precio;
+
+        if (esCria) cout << " | (Cría)";
+        cout << endl;
+
+        cout << "  Descripción: ";
+        mostrarDescripcion();
+    }
+};
+
+// Getters
+    int getId() { return id; }
+    string getTipo() { return tipo; }
+    int getComida() { return comidaPorDia; }
+    int getPrecio() { return precio; }
+    bool getEsCria() { return esCria; }
+    int getVida() { return vida; }
+
+
+// Posibilidad de enfermarse
+    void chanceEnfermar() {
+        if (vida == MUERTO || salud == ENFERMO) return;
+
+        double p = probabilidadBase(tipo, esCria);
+
+        // Cada vacuna reduce la probabilidad
+        for (int i = 0; i < vacunas; i++) {
+            p = p * 0.8;
+        }
+
+        if (probabilidad() < p) {
+            salud = ENFERMO;
+            cout << "El animal " << id << " (" << tipo << ") se enfermó.\n";
+
+            if (esCria) {
+                diasEnfermo = numeroAleatorio(1, 3);
+                if (probabilidad() < 0.5) enfermedadGrave = true;
+            } else {
+                diasEnfermo = 1;
+            }
+        }
+    }
+// Clase Ave
+class Ave : public Animal {
+public:
+    Ave(int p, bool c = false) : Animal("Ave", 1, p, c) {
+        // El ave necesita 1 unidad de comida al día
+    }
+
+    void mostrarDescripcion() {
+        cout << "Un ave es un vertebrado con plumas, alas y pone huevos.\n";
+    }
+};
+
+// Clase Mamífero
+class Mamifero : public Animal {
+public:
+    Mamifero(int p, bool c = false) : Animal("Mamífero", 5, p, c) {
+        // El mamífero necesita 5 unidades de comida al día
+    }
+
+    void mostrarDescripcion() {
+        cout << "Un mamífero tiene sangre caliente y amamanta a sus crías.\n";
+    }
+};
+
+// Clase Reptil
+class Reptil : public Animal {
+public:
+    Reptil(int p, bool c = false) : Animal("Reptil", 3, p, c) {
+        // El reptil necesita 3 unidades de comida al día
+    }
+
+    void mostrarDescripcion() {
+        cout << "Un reptil tiene escamas y es de sangre fría.\n";
+    }
+};
+
+// Clase Pez
+class Pez : public Animal {
+public:
+    Pez(int p, bool c = false) : Animal("Pez", 1, p, c) {
+        // El pez necesita 1 unidad de comida al día
+    }
+
+    void mostrarDescripcion() {
+        cout << "Un pez vive en el agua, respira por branquias y nada con aletas.\n";
+    }
+};
+
+// Clase Anfibio
+class Anfibio : public Animal {
+public:
+    Anfibio(int p, bool c = false) : Animal("Anfibio", 2, p, c) {
+        // El anfibio necesita 2 unidades de comida al día
+    }
+
+    void mostrarDescripcion() {
+        cout << "Un anfibio puede vivir tanto en el agua como en la tierra.\n";
+    }
+};
+
 
 
 
@@ -142,6 +255,7 @@ int main()
 {
     std::cout << "Hello World!\n";
 }
+
 
 
 
