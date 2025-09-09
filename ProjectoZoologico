@@ -1,0 +1,556 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cstdlib>
+#include <ctime>
+#include <iomanip>
+#include <algorithm>
+using namespace std;
+
+// Costos de Recursos
+const int Costo_Comida = 50;
+const int Costo_Suero = 100;
+const int Costo_Medicina = 250;
+const int Costo_Vacuna = 500;
+
+// Estados
+const int VIVO = 0;
+const int MUERTO = 1;
+const int BIEN_ALIMENTADO = 0;
+const int DESNUTRIDO = 1;
+const int SANO = 0;
+const int ENFERMO = 1;
+
+// Tipos de habitats
+const string HABITAT_AVIARIO = "Aviario";
+const string HABITAT_ACUARIO = "Acuario";
+const string HABITAT_LAGUNA = "Laguna";
+const string HABITAT_BOSQUE = "Bosque";
+
+// Tipos de animales
+const string TIPO_AVE = "Ave";
+const string TIPO_MAMIFERO = "Mamifero";
+const string TIPO_REPTIL = "Reptil";
+const string TIPO_PEZ = "Pez";
+const string TIPO_ANFIBIO = "Anfibio";
+
+// Struct para habitat
+struct Habitat {
+    int id;
+    string tipo;
+    vector<class Animal*> animales;
+};
+
+// Clase base Animal
+class Animal {
+protected:
+    int id;
+    string tipo;
+    int comidaPorDia;
+    int precio;
+    int vida;
+    int estadoComida;
+    int salud;
+    bool comioHoy;
+    bool esCria;
+    int diasEnfermo;
+    bool enfermedadGrave;
+    int vacunas;
+    static int contadorId;
+
+public:
+    Animal(string _tipo, int _comida, int _precio, bool _cria = false) {
+        tipo = _tipo;
+        comidaPorDia = _comida;
+        precio = _precio;
+        esCria = _cria;
+        id = ++contadorId;
+        vida = VIVO;
+        estadoComida = BIEN_ALIMENTADO;
+        salud = SANO;
+        comioHoy = false;
+        diasEnfermo = 0;
+        enfermedadGrave = false;
+        vacunas = 0;
+    }
+
+    virtual ~Animal() {}
+
+    // Getters
+    int getId() const { return id; }
+    string getTipo() const { return tipo; }
+    int getComidaPorDia() const { return comidaPorDia; }
+    int getPrecio() const { return precio; }
+    int getVida() const { return vida; }
+    int getEstadoComida() const { return estadoComida; }
+    int getSalud() const { return salud; }
+    bool getComioHoy() const { return comioHoy; }
+    bool getEsCria() const { return esCria; }
+    int getDiasEnfermo() const { return diasEnfermo; }
+    bool getEnfermedadGrave() const { return enfermedadGrave; }
+    int getVacunas() const { return vacunas; }
+
+    // Setters
+    void setComioHoy(bool comio) { comioHoy = comio; }
+    void setEstadoComida(int estado) { estadoComida = estado; }
+    void setSalud(int _salud) { salud = _salud; }
+    void setDiasEnfermo(int dias) { diasEnfermo = dias; }
+    void setEnfermedadGrave(bool grave) { enfermedadGrave = grave; }
+    void setVida(int _vida) { vida = _vida; }
+    void incrementarVacunas() { vacunas++; }
+
+    // Metodos virtuales
+    virtual string mostrarDescripcion() const = 0;
+
+    // Alimentar animal
+    void alimentar() {
+        comioHoy = true;
+        if (estadoComida == DESNUTRIDO) {
+            estadoComida = BIEN_ALIMENTADO;
+        }
+    }
+
+    // Aplicar tratamiento medico
+    void aplicarSuero() {
+        if (estadoComida == DESNUTRIDO) {
+            estadoComida = BIEN_ALIMENTADO;
+        }
+    }
+
+    void aplicarMedicina() {
+        if (salud == ENFERMO) {
+            salud = SANO;
+            diasEnfermo = 0;
+        }
+    }
+
+    void aplicarVacuna() {
+        incrementarVacunas();
+    }
+
+    // Revisar salud
+    void revisarSalud() {
+        if (vida == MUERTO || salud == SANO) return;
+
+        if (esCria) {
+            if (enfermedadGrave) {
+                if (diasEnfermo <= 0) {
+                    vida = MUERTO;
+                }
+                else {
+                    diasEnfermo--;
+                }
+            }
+            else {
+                diasEnfermo--;
+                if (diasEnfermo <= 0) {
+                    if (probabilidad() < 0.2) {
+                        salud = SANO;
+                    }
+                    else {
+                        diasEnfermo = 1;
+                    }
+                }
+            }
+        }
+        else {
+            diasEnfermo--;
+            if (diasEnfermo <= 0) {
+                if (probabilidad() < 0.5) {
+                    salud = SANO;
+                }
+                else {
+                    diasEnfermo = 1;
+                }
+            }
+        }
+    }
+
+    // Verificar si puede estar en un habitat
+    bool puedeEstarEnHabitat(const string& habitatTipo) const {
+        if (habitatTipo == HABITAT_AVIARIO) return tipo == TIPO_AVE;
+        if (habitatTipo == HABITAT_ACUARIO) return tipo == TIPO_PEZ;
+        if (habitatTipo == HABITAT_LAGUNA)
+            return tipo == TIPO_ANFIBIO || tipo == TIPO_REPTIL || tipo == TIPO_PEZ;
+        if (habitatTipo == HABITAT_BOSQUE)
+            return tipo == TIPO_MAMIFERO || tipo == TIPO_REPTIL;
+        return false;
+    }
+
+    // Metodos estaticos
+    static double probabilidad() {
+        return (double)rand() / (double)RAND_MAX;
+    }
+
+    static int numeroAleatorio(int a, int b) {
+        return rand() % (b - a + 1) + a;
+    }
+
+    static double probabilidadBase(string t, bool cria) {
+        if (t == TIPO_AVE) return cria ? 0.04 : 0.02;
+        if (t == TIPO_MAMIFERO) return cria ? 0.02 : 0.01;
+        if (t == TIPO_REPTIL) return cria ? 0.03 : 0.015;
+        if (t == TIPO_PEZ) return cria ? 0.05 : 0.025;
+        if (t == TIPO_ANFIBIO) return cria ? 0.04 : 0.02;
+        return 0.0;
+    }
+};
+
+int Animal::contadorId = 0;
+
+// Clases derivadas
+class Ave : public Animal {
+public:
+    Ave(bool cria = false) : Animal(TIPO_AVE, 1, Animal::numeroAleatorio(100, 1000), cria) {}
+
+    string mostrarDescripcion() const override {
+        return "Un tipo de animal vertebrado que se caracteriza por tener plumas, alas y poner huevos.";
+    }
+};
+
+class Mamifero : public Animal {
+public:
+    Mamifero(bool cria = false) : Animal(TIPO_MAMIFERO, 5, Animal::numeroAleatorio(100, 1000), cria) {}
+
+    string mostrarDescripcion() const override {
+        return "Animal vertebrado que se caracteriza por tener glandulas mamarias y pelo en su cuerpo.";
+    }
+};
+
+class Reptil : public Animal {
+public:
+    Reptil(bool cria = false) : Animal(TIPO_REPTIL, 3, Animal::numeroAleatorio(100, 1000), cria) {}
+
+    string mostrarDescripcion() const override {
+        return "Animal vertebrado de sangre fria que se caracteriza por tener escamas y poner huevos.";
+    }
+};
+
+class Pez : public Animal {
+public:
+    Pez(bool cria = false) : Animal(TIPO_PEZ, 1, Animal::numeroAleatorio(100, 1000), cria) {}
+
+    string mostrarDescripcion() const override {
+        return "Animal vertebrado acuatico que se caracteriza por tener branquias y aletas.";
+    }
+};
+
+class Anfibio : public Animal {
+public:
+    Anfibio(bool cria = false) : Animal(TIPO_ANFIBIO, 2, Animal::numeroAleatorio(100, 1000), cria) {}
+
+    string mostrarDescripcion() const override {
+        return "Animal vertebrado que puede vivir tanto en agua como en tierra, con piel humeda.";
+    }
+};
+
+// Clase Zoologico
+class Zoologico {
+private:
+    vector<Habitat> habitats;
+    vector<Animal*> animales;
+    int dinero;
+    int totalComida;
+    int totalSuero;
+    int totalMedicina;
+    int totalVacunas;
+    int diasSimulacion;
+    int diaActual;
+
+    // Registro de nacimientos
+    struct RegistroNacimiento {
+        int dia;
+        string tipo;
+        int cantidad;
+    };
+    vector<RegistroNacimiento> registrosNacimientos;
+
+public:
+    Zoologico() : dinero(10000), totalComida(0), totalSuero(0),
+        totalMedicina(0), totalVacunas(0), diasSimulacion(0), diaActual(1) {
+    }
+
+    ~Zoologico() {
+        for (Animal* animal : animales) {
+            delete animal;
+        }
+    }
+
+    // Configuracion inicial
+    void configurar() {
+        cout << "=== CONFIGURACION DEL ZOOLOGICO ===\n\n";
+
+        // Configurar habitats
+        int numHabitats;
+        cout << "Ingrese la cantidad de habitats a crear: ";
+        cin >> numHabitats;
+
+        vector<string> tiposHabitats = { HABITAT_AVIARIO, HABITAT_ACUARIO, HABITAT_LAGUNA, HABITAT_BOSQUE };
+        for (int i = 0; i < numHabitats; i++) {
+            Habitat habitat;
+            habitat.id = i + 1;
+            habitat.tipo = tiposHabitats[rand() % tiposHabitats.size()];
+            habitats.push_back(habitat);
+            cout << "Habitat " << habitat.id << " creado: " << habitat.tipo << endl;
+        }
+
+        // Configurar animales
+        int numAnimales;
+        cout << "\nIngrese la cantidad de animales a crear: ";
+        cin >> numAnimales;
+
+        vector<string> tiposAnimales = { TIPO_AVE, TIPO_MAMIFERO, TIPO_REPTIL, TIPO_PEZ, TIPO_ANFIBIO };
+        for (int i = 0; i < numAnimales; i++) {
+            string tipo = tiposAnimales[rand() % tiposAnimales.size()];
+            Animal* animal = nullptr;
+
+            if (tipo == TIPO_AVE) animal = new Ave();
+            else if (tipo == TIPO_MAMIFERO) animal = new Mamifero();
+            else if (tipo == TIPO_REPTIL) animal = new Reptil();
+            else if (tipo == TIPO_PEZ) animal = new Pez();
+            else if (tipo == TIPO_ANFIBIO) animal = new Anfibio();
+
+            // Asignar a habitat valido
+            bool asignado = false;
+            for (Habitat& habitat : habitats) {
+                if (animal->puedeEstarEnHabitat(habitat.tipo)) {
+                    habitat.animales.push_back(animal);
+                    animales.push_back(animal);
+                    asignado = true;
+                    cout << "Animal " << animal->getId() << " (" << tipo << ") asignado a habitat "
+                        << habitat.id << " (" << habitat.tipo << ")" << endl;
+                    break;
+                }
+            }
+
+            if (!asignado) {
+                delete animal;
+                i--; // Reintentar
+            }
+        }
+
+        // Configurar dias de simulacion
+        cout << "\nIngrese la cantidad de dias de simulacion: ";
+        cin >> diasSimulacion;
+    }
+
+    // Ejecutar simulacion
+    void ejecutarSimulacion() {
+        cout << "\n=== INICIANDO SIMULACION ===\n";
+
+        for (diaActual = 1; diaActual <= diasSimulacion; diaActual++) {
+            cout << "\n=== DIA " << diaActual << " ===\n";
+            simularDia();
+        }
+
+        mostrarReporteFinal();
+    }
+
+    // Simular un dia
+    void simularDia() {
+        // Alimentar animales
+        alimentarAnimales();
+
+        // Revisar salud
+        revisarSaludAnimales();
+
+        // Reproduccion
+        simularReproduccion();
+
+        // Enfermedades
+        simularEnfermedades();
+
+        // Mostrar estado actual
+        mostrarEstadoActual();
+    }
+
+    void alimentarAnimales() {
+        cout << "\n--- ALIMENTACION ---\n";
+        for (Animal* animal : animales) {
+            if (animal->getVida() == VIVO) {
+                int costoComida = animal->getComidaPorDia() * Costo_Comida;
+                if (dinero >= costoComida) {
+                    animal->alimentar();
+                    dinero -= costoComida;
+                    totalComida += costoComida;
+                    cout << "Animal " << animal->getId() << " alimentado. Costo: " << costoComida << endl;
+                }
+                else {
+                    cout << "No hay dinero suficiente para alimentar al animal " << animal->getId() << endl;
+                    if (animal->getEstadoComida() == DESNUTRIDO) {
+                        animal->setVida(MUERTO);
+                        cout << "Animal " << animal->getId() << " murio por desnutricion.\n";
+                    }
+                    else {
+                        animal->setEstadoComida(DESNUTRIDO);
+                        cout << "Animal " << animal->getId() << " esta desnutrido.\n";
+                    }
+                }
+            }
+        }
+    }
+
+    void revisarSaludAnimales() {
+        cout << "\n--- REVISION DE SALUD ---\n";
+        for (Animal* animal : animales) {
+            if (animal->getVida() == VIVO) {
+                animal->revisarSalud();
+                if (animal->getSalud() == ENFERMO && animal->getDiasEnfermo() <= 0) {
+                    animal->setVida(MUERTO);
+                    cout << "Animal " << animal->getId() << " murio por enfermedad.\n";
+                }
+            }
+        }
+    }
+
+    void simularReproduccion() {
+        cout << "\n--- REPRODUCCION ---\n";
+        vector<string> tiposAnimales = { TIPO_AVE, TIPO_MAMIFERO, TIPO_REPTIL, TIPO_PEZ, TIPO_ANFIBIO };
+
+        for (const string& tipo : tiposAnimales) {
+            int adultos = contarAnimalesPorTipo(tipo, false);
+            if (adultos >= 2) {
+                double prob = Animal::probabilidadBase(tipo, false);
+                if (Animal::probabilidad() < prob) {
+                    int criasNacidas = Animal::numeroAleatorio(1, 3);
+                    RegistroNacimiento registro;
+                    registro.dia = diaActual;
+                    registro.tipo = tipo;
+                    registro.cantidad = criasNacidas;
+                    registrosNacimientos.push_back(registro);
+
+                    cout << "Nacieron " << criasNacidas << " crias de " << tipo << endl;
+
+                    for (int i = 0; i < criasNacidas; i++) {
+                        Animal* cria = nullptr;
+                        if (tipo == TIPO_AVE) cria = new Ave(true);
+                        else if (tipo == TIPO_MAMIFERO) cria = new Mamifero(true);
+                        else if (tipo == TIPO_REPTIL) cria = new Reptil(true);
+                        else if (tipo == TIPO_PEZ) cria = new Pez(true);
+                        else if (tipo == TIPO_ANFIBIO) cria = new Anfibio(true);
+
+                        // Asignar a habitat valido
+                        for (Habitat& habitat : habitats) {
+                            if (cria->puedeEstarEnHabitat(habitat.tipo)) {
+                                habitat.animales.push_back(cria);
+                                animales.push_back(cria);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void simularEnfermedades() {
+        cout << "\n--- ENFERMEDADES ---\n";
+        for (Animal* animal : animales) {
+            if (animal->getVida() == VIVO) {
+                double prob = Animal::probabilidadBase(animal->getTipo(), animal->getEsCria());
+                if (Animal::probabilidad() < prob) {
+                    animal->setSalud(ENFERMO);
+                    if (animal->getEsCria()) {
+                        animal->setEnfermedadGrave(Animal::probabilidad() < 0.3);
+                        animal->setDiasEnfermo(animal->getEnfermedadGrave() ? 1 : 3);
+                        cout << "Cria " << animal->getId() << " enfermo ("
+                            << (animal->getEnfermedadGrave() ? "grave" : "leve") << ")\n";
+                    }
+                    else {
+                        animal->setDiasEnfermo(Animal::numeroAleatorio(2, 5));
+                        cout << "Animal " << animal->getId() << " enfermo\n";
+                    }
+                }
+            }
+        }
+    }
+
+    int contarAnimalesPorTipo(const string& tipo, bool soloCrias = false) const {
+        int count = 0;
+        for (const Animal* animal : animales) {
+            if (animal->getVida() == VIVO && animal->getTipo() == tipo &&
+                (!soloCrias || animal->getEsCria())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    void mostrarEstadoActual() {
+        cout << "\n--- ESTADO ACTUAL ---\n";
+        cout << "Dinero disponible: " << dinero << endl;
+        cout << "Animales vivos: " << contarAnimalesVivos() << "/" << animales.size() << endl;
+
+        for (const string& tipo : { TIPO_AVE, TIPO_MAMIFERO, TIPO_REPTIL, TIPO_PEZ, TIPO_ANFIBIO }) {
+            int vivos = contarAnimalesPorTipo(tipo);
+            int total = contarAnimalesPorTipo(tipo, false) + contarAnimalesPorTipo(tipo, true);
+            if (total > 0) {
+                cout << tipo << ": " << vivos << "/" << total << " vivos" << endl;
+            }
+        }
+    }
+
+    int contarAnimalesVivos() const {
+        int count = 0;
+        for (const Animal* animal : animales) {
+            if (animal->getVida() == VIVO) count++;
+        }
+        return count;
+    }
+
+    void mostrarReporteFinal() {
+        cout << "\n=== REPORTE FINAL ===\n";
+
+        // Detalle de animales
+        cout << "\n--- DETALLE DE ANIMALES ---\n";
+        for (const Animal* animal : animales) {
+            cout << "ID: " << animal->getId() << ", Tipo: " << animal->getTipo()
+                << ", Estado: " << (animal->getVida() == VIVO ? "Vivo" : "Muerto")
+                << ", Precio: " << animal->getPrecio() << endl;
+            cout << "  Descripcion: " << animal->mostrarDescripcion() << endl;
+        }
+
+        // Sumatorias de precios
+        int sumaVivos = 0, sumaMuertos = 0;
+        for (const Animal* animal : animales) {
+            if (animal->getVida() == VIVO) {
+                sumaVivos += animal->getPrecio();
+            }
+            else {
+                sumaMuertos += animal->getPrecio();
+            }
+        }
+        cout << "\n--- SUMATORIA DE PRECIOS ---\n";
+        cout << "Animales vivos: " << sumaVivos << endl;
+        cout << "Animales fallecidos: " << sumaMuertos << endl;
+
+        // Total invertido
+        cout << "\n--- TOTAL INVERTIDO ---\n";
+        cout << "Comida: " << totalComida << endl;
+        cout << "Suero: " << totalSuero << endl;
+        cout << "Medicina: " << totalMedicina << endl;
+        cout << "Vacunas: " << totalVacunas << endl;
+        cout << "Total: " << (totalComida + totalSuero + totalMedicina + totalVacunas) << endl;
+
+        // Registro de nacimientos
+        cout << "\n--- REGISTRO DE NACIMIENTOS ---\n";
+        for (const RegistroNacimiento& registro : registrosNacimientos) {
+            cout << "Dia " << registro.dia << ": " << registro.cantidad
+                << " crias de " << registro.tipo << endl;
+        }
+
+        // Ingresos esperados
+        cout << "\n--- INGRESOS ESPERADOS ---\n";
+        cout << "Total: " << sumaVivos << endl;
+    }
+};
+
+int main() {
+    srand(time(0)); // Inicializar semilla para numeros aleatorios
+
+    Zoologico zoologico;
+    zoologico.configurar();
+    zoologico.ejecutarSimulacion();
+
+    return 0;
+}
